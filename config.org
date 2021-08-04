@@ -1,0 +1,433 @@
+* Setup
+
+Setup are settings that are essential for this configuration file.
+
+** Package Sources
+
+Add repositories from which we'll load packages. I prefer to live on the
+bleeding edge so have only enabled melpa. Setting =package-enable-at-startup= to
+=nil= prevents a second package load and slightly improves startup time.
+
+#+BEGIN_SRC emacs-lisp
+(require 'package)
+(add-to-list 'package-archives
+             '("melpa" . "https://melpa.org/packages/"))
+(package-refresh-contents)
+(package-initialize)
+#+END_SRC
+
+
+** Bootstrap use-package
+
+If =use-package= is not installed, install it.
+
+#+BEGIN_SRC emacs-lisp
+(unless (package-installed-p 'use-package)
+  (package-install 'use-package))
+(setq use-package-always-ensure t)
+#+END_SRC
+
+By default all packages should be installed from package manager as that's the
+usual path. This is equivalent to setting =:ensure t= on each call to
+=use-package=. To disable set =:ensure nil= (this is done automatically for any
+packages using =:load-path= so shouldn't generally be needed).
+
+#+BEGIN_SRC emacs-lisp
+  (setq use-package-always-ensure t)
+#+END_SRC
+
+
+** Increase garbage collector threshold
+
+The default garbage collection threshold is 800kB, increasing this to 10MB for
+startup increases speed (from 11.0s -> 9.7s when I tested).
+
+#+BEGIN_SRC emacs-lisp
+  (setq gc-cons-threshold 10000000)
+
+  ;; Restore after startup
+  (add-hook 'after-init-hook
+	    (lambda ()
+	      (setq gc-cons-threshold 1000000)
+	      (message "gc-cons-threshold restored to %S"
+		       gc-cons-threshold)))
+#+END_SRC
+
+* Preferences
+
+Preference are settings that come built-in Emacs. So it is just a
+matter of turning it on or not.
+
+** Splash screen
+
+Hide splash screen on startup
+
+#+BEGIN_SRC emacs-lisp
+  (setq inhibit-startup-screen t)
+#+END_SRC
+
+
+** Confirmation Prompt
+
+Make the =yes or no= prompts shorter.
+
+#+BEGIN_SRC emacs-lisp
+  (defalias 'yes-or-no-p 'y-or-n-p)
+#+END_SRC
+
+
+** New line
+
+Turn on new line automatically
+
+#+BEGIN_SRC emacs-lisp
+  (setq-default auto-fill-function 'do-auto-fill)
+#+END_SRC
+
+Use the default length before starting the new line
+
+#+begin_src emacs-lisp
+  (setq-default fill-column 80)
+#+end_src
+
+Add a new line before the end of the files
+
+#+begin_src emacs-lisp
+  (setq require-final-newline t)
+#+end_src
+
+
+** Line number
+
+Turn on line numbering on the left
+
+#+begin_src emacs-lisp
+  (global-display-line-numbers-mode)
+#+end_src
+
+
+** Indentations
+
+#+begin_src emacs-lisp
+  (setq-default indent-tabs-mode nil)
+  (setq-default tab-width 4)
+  (setq tab-width 4)
+#+end_src
+
+
+** Scroll
+
+Set smooth scrolling using keyboard movements
+
+#+begin_src emacs-lisp
+  (setq scroll-conservatively 101)
+  (setq scroll-margin 20)
+#+end_src
+
+Mouse scroling
+
+#+begin_src emacs-lisp
+  (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))) ;; one line at a time
+  (setq mouse-wheel-progressive-speed nil) ;; don't accelerate scrolling
+  (setq mouse-wheel-follow-mouse 't) ;; scroll window under mouse
+  (setq scroll-step 1)
+#+end_src
+
+
+** Line Highlight
+
+Turn on global highlight
+
+#+begin_src emacs-lisp
+  (global-hl-line-mode t)
+#+end_src
+
+
+** Functions
+
+Turn on function name which will appear on the bottom right corner in the
+modeline
+
+#+begin_src emacs-lisp
+  (which-function-mode 1)
+#+end_src
+
+
+** Selection
+
+When text is selected and paste button is clicked, override the text
+
+#+begin_src emacs-lisp
+  (delete-selection-mode 1)
+#+end_src
+
+
+** Parenthesis
+
+Highlight parenthesis
+
+#+begin_src emacs-lisp
+  (show-paren-mode 1)
+#+end_src
+
+
+** Kill emacs
+
+Prompt for confirmation before killing the emacs
+
+#+begin_src emacs-lisp
+  (setq confirm-kill-emacs 'y-or-n-p)
+#+end_src
+
+
+** Extra path
+
+#+begin_src emacs-lisp
+  (defvar config-load-path (file-name-directory (or load-file-name buffer-file-name)))
+#+end_src
+
+
+** Display inline images
+
+#+begin_src emacs-lisp
+  (setq org-startup-with-inline-images t)
+#+end_src
+
+
+** Whitespace
+
+#+begin_src emacs-lisp
+  (add-hook 'before-save-hook 'delete-trailing-whitespace)
+#+end_src
+
+
+** Display
+
+#+begin_src emacs-lisp
+  (set-frame-parameter (selected-frame) 'fullscreen 'maximized)
+  (add-to-list 'default-frame-alist '(fullscreen . maximized))
+#+end_src
+
+
+* Packages
+
+Packages are third party tools that competes my workflow.
+
+** Theme
+
+My theme preference is =doom-themes=. Bold and italic text are enabled.
+
+ #+BEGIN_SRC emacs-lisp
+  (use-package doom-themes
+    :config
+    ;; Global settings (defaults)
+    (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+          doom-themes-enable-italic t) ; if nil, italics is universally disabled
+    (load-theme 'doom-one t)
+
+    ;; Corrects (and improves) org-mode's native fontification.
+    (doom-themes-org-config))
+ #+END_SRC
+
+Since we are already using =doom-themes=, might as well as use =doom-modeline= too.
+
+#+begin_src emacs-lisp
+  (use-package doom-modeline
+    :hook (after-init . doom-modeline-mode))
+#+end_src
+
+In order to make the =doom-themes= experience complete, we are using
+=all-the-icons= package too.
+
+#+begin_src emacs-lisp
+  (use-package all-the-icons)
+#+end_src
+
+Basic configuration for =doom-modeline= including adding the support for
+=all-the-icons= package as well.
+
+#+begin_src emacs-lisp
+;; How tall the mode-line should be. It's only respected in GUI.
+;; If the actual char height is larger, it respects the actual height.
+(setq doom-modeline-height 35)
+
+;; How wide the mode-line bar should be. It's only respected in GUI.
+(setq doom-modeline-bar-width 3)
+
+;; The limit of the window width.
+;; If `window-width' is smaller than the limit, some information won't be displayed.
+(setq doom-modeline-window-width-limit fill-column)
+
+;; Whether display the colorful icon for `major-mode'.
+;; It respects `all-the-icons-color-icons'.
+(setq doom-modeline-major-mode-color-icon t)
+#+end_src
+
+
+** Command completion
+
+ =ivy= is a generic completion framework which uses the minibuffer. Turning on
+ =ivy-mode= enables replacement of lots of built in =ido= functionality.
+
+ #+BEGIN_SRC emacs-lisp
+  (use-package ivy
+      :config
+      (ivy-mode t))
+
+  (setq ivy-use-virtual-buffers t)
+  (setq ivy-count-format "(%d/%d) ")
+
+ #+END_SRC
+
+Since =ivy= package provides a very comprehensive auto-complete command for us,
+thus it will get crowded in the minibuffer. In order to solve that, we are using
+=ivy-posframe= where it will display the minibuffer at the center of the frame.
+
+#+begin_src emacs-lisp
+  (use-package ivy-posframe
+    :ensure t
+    :after ivy
+    :diminish ivy-posframe-mode
+    :custom-face
+    (ivy-posframe ((t (list :background (face-attribute 'default :background)))))
+    (ivy-posframe-border ((t (:background "gold"))))
+    (ivy-posframe-cursor ((t (:background "gold"))))
+    :config
+    (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display)))
+    (ivy-posframe-mode 1))
+
+#+end_src
+
+
+** Suggest next key
+
+Suggest next keys to me based on currently entered key combination.
+
+ #+BEGIN_SRC emacs-lisp
+  (use-package which-key
+    :config
+    (add-hook 'after-init-hook 'which-key-mode))
+ #+END_SRC
+
+
+** Easier selection
+
+ =expand-region= expands the region around the cursor semantically depending on mode. Hard to describe but a killer feature.
+
+ #+BEGIN_SRC emacs-lisp
+  (use-package expand-region
+    :bind ("C-=" . er/expand-region))
+ #+END_SRC
+
+
+** Git
+
+Magit is an awesome interface to git. Summon it with `C-x g`.
+
+ #+BEGIN_SRC emacs-lisp
+  (use-package magit
+    :bind ("C-x g" . magit-status))
+#+END_SRC
+
+
+** Org-mode
+
+=org-mode= is a built in feature in Emacs. However due to the it's robustness, I
+decided to place it's configuration separately.
+
+Allow for note taking feature for every completed task. Allow to use shift
+select for easy text highlighting and also, enable =org-indent-mode= by default.
+
+#+BEGIN_SRC emacs-lisp
+  (setq org-log-done 'note)
+  (setq org-support-shift-select t)
+  (setq org-startup-indented t)
+#+END_SRC
+
+Make the header nicer by using =org-bullets= instead of asteriks
+
+#+BEGIN_SRC emacs-lisp
+
+  (use-package org-bullets
+    :config
+    (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
+#+END_SRC
+
+
+** Dashboard
+
+Replace the splash screen with =dashboard=.
+
+#+BEGIN_SRC emacs-lisp
+
+   (use-package dashboard
+     :init
+       (progn
+         (setq dashboard-items '((recents . 5)))
+         (setq dashboard-show-shortcuts nil)
+	     (setq dashboard-center-content nil)
+	     ;; (setq dashboard-banner-logo-title "Follow and Tip. Like and Subscribe")
+	     (setq dashboard-set-file-icons t)
+	     (setq dashboard-set-heading-icons t)
+	     ;; (setq dashboard-startup-banner "~/Downloads/me.png")
+	     (setq dashboard-set-navigator nil)
+	     ;; Format: "(icon title help action face prefix suffix)"
+	     (setq dashboard-navigator-buttons
+         `(;; line1
+         ((,nil
+           "init file"
+           "Open init file"
+	     (lambda (&rest _) (find-file "~/.dotfiles/config.org"))
+	   )))))
+   :config
+   (dashboard-setup-startup-hook))
+
+#+END_SRC
+
+
+** Company Mode
+
+Use =company-mode= for text suggestion.
+
+#+begin_src emacs-lisp
+
+  (use-package company
+    :init
+	(add-hook 'after-init-hook 'global-company-mode)
+	:custom
+	(company-tooltip-limit 5) ; show 5 candidates at one time
+	(company-idle-delay 0.15) ;; delay (in seconds) when candidates are shown, change if you need to, potentially cpu intensive on older machines if set to 0
+	(company-minimum-prefix-length 3) ;; show completions after 3 chars
+	(company-selection-wrap-around t) ;; goes to start of selection if you reached the bottom
+	(company-require-match 'never)) ;; dont need to pick a choice )
+#+end_src
+
+
+** Flycheck
+
+Enable =flycheck= for spelling mistake
+
+#+begin_src emacs-lisp
+
+  (use-package flycheck
+    :init
+	(global-flycheck-mode))
+#+end_src
+
+** Org-babel
+
+Setup supported languages
+
+#+begin_src emacs-lisp
+  (org-babel-do-load-languages
+   (quote org-babel-load-languages)
+   (quote ((emacs-lisp . t)
+           (dot . t)
+           (python . t)
+           (gnuplot . t)
+           (shell . t)
+           (ledger . t)
+           (org . t)
+           (latex . t)
+           (haskell . t))))
+#+end_src
