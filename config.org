@@ -208,6 +208,11 @@ Prompt for confirmation before killing the emacs
   (add-to-list 'default-frame-alist '(fullscreen . maximized))
 #+end_src
 
+** Notification
+
+#+begin_src emacs-lisp
+  (setq visible-bell 1)
+#+end_src
 
 * Packages
 
