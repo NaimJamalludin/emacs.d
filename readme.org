@@ -1,0 +1,59 @@
+* emacs.d
+
+emacs.d is my emacs directory that contains my emacs configuration files.
+
+** Installation Guide
+
+To start using my emacs configuration files, simply clone this repository by
+executing the following command:
+
+#+begin_src shell
+git clone https://github.com/NaimJamalludin/emacs.d.git
+#+end_src
+
+*** Linux
+
+For Linux operating system, copy =init.el= and =config.org= to =~/.emacs.d=.
+
+Once copied, open emacs to let it download and install all the necessary packages. After it
+finish installed, execute the following command within emacs to install
+=all-the-icons=.
+
+#+begin_src emacs-lisp
+M-x all-the-icons-install-fonts
+#+end_src
+
+After you have installed =all-the-icons=, you have completed configuring your
+emacs and may use it right away.
+
+*** Windows
+
+For Windows operating system, copy =init.el= and =config.org= to
+=C:\Users\<user>\AppData\Roaming\.emacs.d=.
+
+Once copied, open emacs to let it download and install all the necessary
+packages. After it finish installed, execute the following command within
+emacs to install =all-the-icons=.
+
+#+begin_src emacs-lisp
+M-x all-the-icons-install-fonts
+#+end_src
+
+It will prompt user to specify the download directory. You may define it
+wherever you want but in my case, I usually define it back to
+=C:\Users\<user>\AppData\Roaming\.emacs.d\fonts=. After it finished downloading, you will
+have the following files in your download directory.
+
+1. all-the-icons.ttf
+2. file-icons.ttf
+3. fontawesome.ttf
+4. material-design-icons.ttf
+5. octicons.ttf
+6. weathericons.ttf
+
+Open each file and click on the =install= button. Once you have done that, you
+have completed configuring your emacs and may use it right away.
+
+** Credits
+
+[[https://www.hackercitizen.com/emacs-for-windows-10-install-all-the-icons/][all-the-icons for Windows 10 Emacs]]
